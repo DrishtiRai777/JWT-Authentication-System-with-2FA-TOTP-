@@ -28,7 +28,7 @@ app.set('view-engine', 'ejs');
 const refreshAccessToken = async (req, res, next) => {
     const accessToken = req.cookies.accessToken;
     
-    if (!accessToken) {
+    if(!accessToken) {
         return attemptTokenRefresh(req, res, next);
     }
 
@@ -75,12 +75,12 @@ app.get('/', refreshAccessToken, (req, res) => {
 function checkAuthenticated(req, res, next) {
     const accessToken = req.cookies.accessToken;
 
-    if (!accessToken) {
+    if(!accessToken) {
         return next();
     }
 
     jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) {
+        if(err) {
             return next();
         }
         return res.redirect('/');
@@ -88,8 +88,8 @@ function checkAuthenticated(req, res, next) {
 }
 
 // Render Registration & Login Pages
-app.get('/login', checkAuthenticated, (req, res) => res.render('login.ejs', { error: null }));
-app.get('/register', checkAuthenticated, (req, res) => res.render('register.ejs', { error: null }));
+app.get('/login', checkAuthenticated, (req, res) => res.render('login.ejs'));
+app.get('/register', checkAuthenticated, (req, res) => res.render('register.ejs'));
 
 // Register Route
 app.post('/register', async (req, res) => {
@@ -118,12 +118,12 @@ app.post('/login', async (req, res) => {
       const { email, password } = req.body;
       const user = await User.findOne({ email });
 
-      if (!user) {
+      if(!user){
           return res.render('login.ejs', { error: "Email incorrect" });
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
+      if(!isPasswordValid) {
           return res.render('login.ejs', { error: "Password incorrect" });
       }
 
@@ -173,17 +173,17 @@ function generateRefreshToken(user) {
     return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
 }
 
-// Refresh Token Route
-app.post('/token', validateRefreshToken, (req, res) => {
-    const accessToken = generateAccessToken({ id: req.user.id });
-    res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "Strict",
-        maxAge: 15 * 60 * 1000, // 15 minutes
-    });
-    res.json({ accessToken });
-});
+// // Refresh Token Route
+// app.post('/token', validateRefreshToken, (req, res) => {
+//     const accessToken = generateAccessToken({ id: req.user.id });
+//     res.cookie("accessToken", accessToken, {
+//         httpOnly: true,
+//         secure: true,
+//         sameSite: "Strict",
+//         maxAge: 15 * 60 * 1000, // 15 minutes
+//     });
+//     res.json({ accessToken });
+// });
 
 // Middleware to Validate Refresh Token
 async function validateRefreshToken(req, res, next) {
@@ -204,6 +204,7 @@ async function validateRefreshToken(req, res, next) {
 // Logout Route
 app.post('/logout', validateRefreshToken, async (req, res) => {
     try {
+        // Clear db and cookies
         await Token.findOneAndDelete({ userId: req.user.id });
 
         res.clearCookie("refreshToken", {
@@ -212,8 +213,13 @@ app.post('/logout', validateRefreshToken, async (req, res) => {
             sameSite: "Strict"
         });
 
-        res.clearCookie("accessToken");
+        res.clearCookie("accessToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "Strict"
+        });
         res.redirect('/login');
+        
     } catch (err) {
         res.status(500).json({ error: "Internal Server Error" });
     }
