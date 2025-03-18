@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enable TOTP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        img {
+            margin-top: 10px;
+            width: 200px;
+            height: 200px;
+        }
+        input, button {
+            margin-top: 10px;
+            padding: 10px;
+            width: 100%;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Enable Two-Factor Authentication</h2>
+        
+        <% if (error) { %>
+            <p class="error"><%= error %></p>
+        <% } %>
+
+        <p>Scan the QR Code below using Google Authenticator or any TOTP app:</p>
+        <img src="<%= qrCodeUrl %>" alt="TOTP QR Code">
+
+        <form action="/totp/verify-totp" method="POST">
+            <label for="totpCode">Enter the 6-digit code from your app:</label>
+            <input type="text" name="totpCode" id="totpCode" required pattern="[0-9]{6}">
+            <button type="submit">Verify & Enable TOTP</button>
+        </form>
+    </div>
+
+</body>
+</html>

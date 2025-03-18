@@ -7,6 +7,7 @@ const Token = require('./Models/tokenSchema');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const totp = require('./routes/twofa');
 
 require('dotenv').config();
 const app = express();
@@ -17,11 +18,12 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/totp', totp);
 
 // Connect to MongoDB
 connectDB();
 
-// Set EJS as the view engine
+// EJS as the view engine
 app.set('view-engine', 'ejs');
 
 // Middleware to refresh access tokens
@@ -104,13 +106,25 @@ app.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ name, email, password: hashedPassword });
         await newUser.save();
+        
+        // Generate token with userId
+        const payload = { id: newUser._id };
+        const userIdToken = generateUserIdToken(payload)
+        res.cookie('auth_token', userIdToken, { httpOnly: true, secure: false });
 
-        res.redirect('/login');
+        console.log("User registered, setting auth_token:", userIdToken);
+        console.log("Redirecting to /totp...");
+
+        res.redirect('/totp');
     } catch (error) {
         console.error('Error registering user:', error);
         res.render('register.ejs', { error: "Internal Server Error" });
     }
 });
+
+function generateUserIdToken(user) {
+    return jwt.sign(user, process.env.USERID_TOKEN_SECRET, { expiresIn: '1h' });
+}
 
 // Login Route
 app.post('/login', async (req, res) => {

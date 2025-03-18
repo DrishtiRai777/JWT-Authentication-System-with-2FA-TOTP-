@@ -1,0 +1,12 @@
+<h1>Reset Password</h1>
+<% if (typeof error !== "undefined") { %>
+    <p style="color: red;"><%= error %></p>
+<% } %>
+<form action="/totp/reset-pswd" method="POST">
+    <label for="email">Enter Email</label>
+    <input type="email" name="email" id="email">
+    <br> <br>
+    <label for="totp">Enter the 6-digit code from your app:</label>
+    <input type="text" name="totp" id="totp" required pattern="[0-9]{6}" required>
+    <button type="submit">Verify</button>
+</form>
