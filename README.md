@@ -7,6 +7,15 @@ Database: MongoDB (Mongoose)
 Authentication: JWT, bcrypt, speakeasy (for TOTP)
 Templating Engine: EJS
 
+# Features
+
+- User Registration & Login (JWT-based session management)
+- Two-Factor Authentication (2FA) using TOTP (Google Authenticator)
+- Password Reset via TOTP (No email required for extra security)
+- Session Handling with JWT Cookies (Secure authentication flow)
+- Secure Routes
+- Fully Functional Frontend with EJS Templates
+
 # Authentication Flow
 
 -  User Registers → Redirects to /totp for 2FA setup
